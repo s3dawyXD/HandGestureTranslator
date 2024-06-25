@@ -1,0 +1,83 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+</head>
+<body>
+    <video id="videoElement" width="640" height="480" autoplay></video>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Get reference to video element
+        var video = document.getElementById('videoElement');
+
+        // Receive detection results from backend
+        socket.on('detection_results', function (img_str) {
+            // Update the video element with the annotated video frame
+            video.src = img_str;
+        });
+
+        // Function to capture video frames from the webcam and send to backend
+        function captureFrame() {
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            var imageData = canvas.toDataURL('image/jpeg');
+            socket.emit('video_stream', imageData);
+        }
+
+        // Capture video frames periodically (adjust interval as needed)
+        setInterval(captureFrame, 1000);
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+</head>
+<body>
+    <video id="videoElement" width="640" height="480" autoplay></video>
+    <img id="videoElement2" width="640" height="480" autoplay></img>
+
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var video2 = document.getElementById('videoElement2');
+        // Get access to the camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                var video = document.getElementById('videoElement');
+                video.srcObject = stream;
+
+                setInterval(function () {
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    var imageData = canvas.toDataURL('image/jpeg');
+                    socket.emit('video_stream', imageData);
+                }, 100); // Adjust the interval as needed
+            })
+            .catch(function (err) {
+                // console.log("An error occurred: " + err);
+            });
+
+        // Receive detection results from backend
+        socket.on('detection_results', function (result) {
+            // Process detection results
+            // console.log(result);
+            video2.src = "data:img/mp4;base64," + result;
+        });
+    </script>
+</body>
+</html>
