@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template
 from flask_caching import Cache
 from flask_socketio import SocketIO, emit
 from PIL import Image
@@ -18,7 +18,6 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 cache.init_app(app)
 
-# Initialize YOLO model
 model = YOLO("oldv8.pt")
 
 names = [
@@ -60,16 +59,14 @@ names = [
 @socketio.on("video_stream")
 def handle_video_stream(image):
     img_data = base64.b64decode(image.split(",")[1])
-    img = Image.open(BytesIO(img_data))
-    img = img.resize((320, 240))
+    img = Image.open(BytesIO(img_data)).resize((320, 240))
     img_cv2 = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
     result_images = model(img, show=False, conf=0.5, save=False)
 
     for result_img in result_images:
         for box in result_img.boxes:
-            x1, y1, x2, y2 = box.xyxy[0]
-            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
             cv2.rectangle(img_cv2, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Draw rectangle
             conf = math.ceil((box.conf[0] * 100)) / 100
             cls = int(box.cls[0])
