@@ -19,6 +19,8 @@ socketio = SocketIO(app)
 cache.init_app(app)
 
 model = YOLO("oldv8.pt")
+process_counter = 0
+
 
 names = [
     "ال",
@@ -61,6 +63,12 @@ def handle_video_stream(image):
     img_data = base64.b64decode(image.split(",")[1])
     img = Image.open(BytesIO(img_data)).resize((320, 240))
     img_cv2 = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    global process_counter
+    process_counter += 1
+    if process_counter % 2 != 0:
+        if process_counter == 10:
+            process_counter = 0
+        return
 
     result_images = model(img, show=False, conf=0.5, save=False)
 

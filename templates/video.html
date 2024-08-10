@@ -1,0 +1,43 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Stream</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+    <script>
+        var socket = io();
+
+        // Function to send video stream to the server
+        function sendStream(stream) {
+            var reader = stream.getReader();
+            reader.read().then(function processVideoFrame({ done, value }) {
+                if (done) return;
+                socket.emit('stream_video', value);
+                reader.read().then(processVideoFrame);
+            });
+        }
+
+        // Example: Get video stream from a video element
+        var video = document.getElementById('videoElement');
+        var stream = video.captureStream();
+
+        // Start sending video stream to the server
+        sendStream(stream);
+
+        // Receive video frames from the server
+        socket.on('video_frame', function (data) {
+            // Process received video frame data (e.g., display it on a <canvas>)
+            console.log('Received video frame:', data);
+        });
+    </script>
+</head>
+<body>
+    <video id="videoElement" autoplay playsinline muted width="640" height="480">
+        <!-- Your video source -->
+        <source src="video_source.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</body>
+</html>
